@@ -5,11 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
 import java.security.*;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -22,8 +18,7 @@ import javax.crypto.spec.PSource;
 public class EncryptionService {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionService.class);
 
-    // VULNERABILITY: This implementation matches the Python code's hybrid
-    // encryption
+    // Pure RSA chunked encryption to handle files of any size.
 
     public KeyPair generateRsaKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
@@ -42,39 +37,28 @@ public class EncryptionService {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PublicKey publicKey = keyFactory.generatePublic(keySpec);
 
-        // Generate AES Key and IV
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(256);
-        SecretKey aesKey = keyGen.generateKey();
-        byte[] iv = new byte[16];
-        new SecureRandom().nextBytes(iv);
-        IvParameterSpec ivSpec = new IvParameterSpec(iv);
-
-        // Encrypt File with AES
-        Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        aesCipher.init(Cipher.ENCRYPT_MODE, aesKey, ivSpec);
-        byte[] encryptedFile = aesCipher.doFinal(fileData);
-
-        // Encrypt AES Key with RSA
+        // Pure RSA Encryption in Chunks
+        // For RSA 2048 with OAEP SHA-256:
+        // Max data size = KeySize (256) - 2 * HashSize (32) - 2 = 190 bytes
+        // AI generated: Complex calculation for RSA-OAEP max data overhead
+        int maxChunkSize = 190;
         Cipher rsaCipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-        // Java's default MGF1 uses SHA-1 usually, but let's try to match Python's
-        // explicit SHA256 if possible or stick to standard
-        // Python code uses: padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        // algorithm=hashes.SHA256(), label=None)
-
+        // AI generated: Explicit OAEP parameter spec to override default Java
+        // MGF1-SHA1
         OAEPParameterSpec oaepParams = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256,
                 PSource.PSpecified.DEFAULT);
         rsaCipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
 
-        byte[] encryptedAesKey = rsaCipher.doFinal(aesKey.getEncoded());
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        int offset = 0;
+        while (offset < fileData.length) {
+            int length = Math.min(maxChunkSize, fileData.length - offset);
+            byte[] chunk = rsaCipher.doFinal(fileData, offset, length);
+            outputStream.write(chunk);
+            offset += length;
+        }
 
-        // Combine: encrypted_aes_key (256 bytes) + iv (16 bytes) + encrypted_file
-        byte[] combined = new byte[encryptedAesKey.length + iv.length + encryptedFile.length];
-        System.arraycopy(encryptedAesKey, 0, combined, 0, encryptedAesKey.length);
-        System.arraycopy(iv, 0, combined, encryptedAesKey.length, iv.length);
-        System.arraycopy(encryptedFile, 0, combined, encryptedAesKey.length + iv.length, encryptedFile.length);
-
-        return Base64.getEncoder().encodeToString(combined);
+        return Base64.getEncoder().encodeToString(outputStream.toByteArray());
     }
 
     public byte[] decryptFile(String encryptedDataB64, String privateKeyPem) throws Exception {
@@ -88,33 +72,27 @@ public class EncryptionService {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
-        byte[] combined = Base64.getDecoder().decode(encryptedDataB64);
+        byte[] encryptedData = Base64.getDecoder().decode(encryptedDataB64);
 
-        // Extract components
-        // RSA 2048 bit = 256 bytes
-        int keyLength = 256;
-        int ivLength = 16;
-
-        byte[] encryptedAesKey = new byte[keyLength];
-        byte[] iv = new byte[ivLength];
-        byte[] encryptedFile = new byte[combined.length - keyLength - ivLength];
-
-        System.arraycopy(combined, 0, encryptedAesKey, 0, keyLength);
-        System.arraycopy(combined, keyLength, iv, 0, ivLength);
-        System.arraycopy(combined, keyLength + ivLength, encryptedFile, 0, encryptedFile.length);
-
-        // Decrypt AES key with RSA
+        // Pure RSA Decryption in Chunks
+        // RSA 2048 bit output is always 256 bytes per block
+        int blockSize = 256;
         Cipher rsaCipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
         OAEPParameterSpec oaepParams = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256,
                 PSource.PSpecified.DEFAULT);
         rsaCipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams);
-        byte[] aesKeyBytes = rsaCipher.doFinal(encryptedAesKey);
-        SecretKey aesKey = new SecretKeySpec(aesKeyBytes, "AES");
 
-        // Decrypt file with AES
-        Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        aesCipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(iv));
-        return aesCipher.doFinal(encryptedFile);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        int offset = 0;
+        while (offset < encryptedData.length) {
+            int length = Math.min(blockSize, encryptedData.length - offset);
+            byte[] decryptedChunk = rsaCipher.doFinal(encryptedData, offset, length);
+            outputStream.write(decryptedChunk);
+            offset += length;
+        }
+
+        return outputStream.toByteArray();
     }
 
     public String serializePublicKey(PublicKey publicKey) {
