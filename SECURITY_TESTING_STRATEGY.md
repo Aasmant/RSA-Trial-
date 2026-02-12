@@ -1,6 +1,6 @@
 # Comprehensive Security Testing Strategy (SSDLC)
 
-This document outlines the security testing strategy for the RSA Encryption Service, covering multiple phases of the Secure Software Development Life Cycle (SSDLC).
+This document outlines the security testing strategy for the RSA Encryption Service (Java/Spring Boot), covering multiple phases of the Secure Software Development Life Cycle (SSDLC).
 
 ## 1. SSDLC Phases & Security Activities
 
@@ -14,18 +14,18 @@ This document outlines the security testing strategy for the RSA Encryption Serv
 
 ### Phase 3: Development (Implementation)
 - **Static Analysis Security Testing (SAST)**: 
-  - Automated tools (e.g., **Bandit** for Python, **SonarQube** for Java) scan source code for patterns indicating vulnerabilities.
-  - *Example*: SAST would flag the hardcoded `SECRET_KEY` in `rsa_service.py` as a high-severity issue.
+  - Automated tools (e.g., **SonarQube** for Java) scan source code for patterns indicating vulnerabilities.
+  - *Example*: SAST would flag hardcoded credentials or weak cryptographic implementations.
 - **Secure Coding Standards**: Following OWASP Top 10 guidelines.
 
 ### Phase 4: Testing & Verification
 - **Unit Testing**: 
   - Focus on cryptographic correctness and security boundary checks.
-  - *Demonstration*: Tests in `test_rsa_security.py` verify that unauthorized users cannot access files (IDOR protection) and that secrets are not leaked in API responses.
+  - *Demonstration*: Tests verify that unauthorized users cannot access encrypted data (IDOR protection) and that secrets are not leaked in API responses.
 - **Dynamic Analysis Security Testing (DAST)**:
   - Scanning the running application for vulnerabilities like SQL injection or weak TLS configurations.
 - **Dependency Scanning**:
-  - Scanning `requirements.txt` or `pom.xml` for known vulnerabilities in third-party libraries (e.g., using `safety` for Python or OWASP Dependency-Check for Java).
+  - Scanning `pom.xml` for known vulnerabilities in third-party libraries (e.g., using OWASP Dependency-Check for Java).
 
 ### Phase 5: Deployment & Maintenance
 - **Secrets Management**: Using environment variables or dedicated vaults (AWS Secrets Manager, HashiCorp Vault).
@@ -36,7 +36,7 @@ This document outlines the security testing strategy for the RSA Encryption Serv
 ## 2. Role of Unit Testing in Security
 
 Unit tests are the first line of defense in the testing phase. They allow developers to:
-1. **Validate Security Logic**: Ensure that `if` statements checking user permissions are working correctly.
+1. **Validate Security Logic**: Ensure that authorization checks are working correctly.
 2. **Prevent Regressions**: Ensure that a bug fix (like fixing a private key leak) doesn't get reintroduced by later changes.
 3. **Test Edge Cases**: Verify behavior with empty inputs, extremely large files (DoS testing), or invalid keys.
 
@@ -52,5 +52,5 @@ SAST tools look for "code smells" and known bad patterns without running the cod
 Compliance requirements (like HIPAA or SOC2) influence testing in several ways:
 - **Mandatory Documentation**: Requires detailed logs of all security tests and their results.
 - **Encryption Standards**: May mandate specific FIPS-compliant libraries or minimum key lengths.
-- **Audit Trails**: Mandates that every API access is logged with user ID, timestamp, and action performed (implemented in our `audit_log` table).
+- **Audit Trails**: Mandates that every API access is logged with user ID, timestamp, and action performed.
 - **Penetration Testing**: Requires regular third-party security audits in addition to internal testing.
