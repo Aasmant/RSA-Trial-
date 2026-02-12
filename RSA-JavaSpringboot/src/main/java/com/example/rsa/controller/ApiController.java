@@ -51,9 +51,10 @@ public class ApiController {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Missing username or password"));
         }
 
-        // VULNERABILITY 8: Weak password validation (4 characters minimum)
-        if (password.length() < 4) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Password too weak"));
+        // SECURE: Enforce strong password complexity (min 12 characters)
+        if (password.length() < 12) {
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("error", "Password too weak. Minimum 12 characters required."));
         }
 
         try {
@@ -88,8 +89,8 @@ public class ApiController {
             response.put("user_id", user.getId());
             response.put("username", username);
             response.put("public_key", publicKeyPem);
-            // VULNERABILITY 7: Returns private key to client
-            response.put("private_key", privateKeyPem);
+            // SECURE: Private key removed from response to prevent leakage
+            // response.put("private_key", privateKeyPem);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -252,19 +253,13 @@ public class ApiController {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Private key required"));
         }
 
-        Optional<FileEntity> fileOpt = fileRepository.findById(fileId);
+        // SECURE: Verify file ownership before allowing decryption (Prevent IDOR/HPE)
+        Optional<FileEntity> fileOpt = fileRepository.findByIdAndUserId(fileId, userId);
         if (fileOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("error", "File not found"));
+                    .body(Collections.singletonMap("error", "File not found or unauthorized"));
         }
-
         FileEntity file = fileOpt.get();
-
-        // VULNERABILITY 11: Missing authorization check in DB query or logic
-        // "SELECT encrypted_data, filename FROM files WHERE id = ?" (Python code)
-        // Here in Java: findById(fileId) fetches without checking userId.
-        // Logic check: We intentionally SKIP checking if file.getUserId() == userId to
-        // replicate the vulnerability.
 
         try {
             // Fix private key formatting if newlines are missing (rough port of Python

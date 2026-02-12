@@ -28,13 +28,9 @@ import secrets
 
 app = Flask(__name__)
 
-# VULNERABILITY 1: Hard-coded SECRET_KEY in source code
-# IMPACT: Anyone with source code access can forge JWT tokens
-# SOLUTION: Use environment variables or secure configuration management
-SECRET_KEY = "super-secret-key-hardcoded-vulnerability"
-
-# VULNERABILITY 2: Weak key generation settings
-SECRET_KEY_WEAK = "password123"
+# SECURE: Use environment variables for sensitive keys
+# Fallback to a random key only for development (never in production)
+SECRET_KEY = os.environ.get("RSA_SERVICE_SECRET_KEY", secrets.token_hex(32))
 
 # Database configuration
 DATABASE = "rsa_service.db"
@@ -345,10 +341,9 @@ def register():
     username = data.get('username')
     password = data.get('password')
     
-    # VULNERABILITY 8: Weak password validation (4 characters minimum)
-    # SOLUTION: Enforce strong password: min 12 chars, complexity requirements
-    if len(password) < 4:
-        return jsonify({'error': 'Password too weak'}), 400
+    # SECURE: Enforce strong password complexity (min 12 characters)
+    if len(password) < 12:
+        return jsonify({'error': 'Password too weak. Minimum 12 characters required.'}), 400
     
     try:
         # Generate RSA keypair
@@ -372,12 +367,13 @@ def register():
         
         log_audit(user_id, 'USER_REGISTERED', f'Username: {username}')
         
-        # VULNERABILITY 7: Returning private key to client (CRITICAL)
+        # SECURE: Never return private keys to the client. 
+        # In a real system, the client generates keys locally or we use key wrapping.
         return jsonify({
             'user_id': user_id,
             'username': username,
-            'public_key': public_key_pem,
-            'private_key': private_key_pem  # SECURITY ISSUE
+            'public_key': public_key_pem
+            # private_key removed to prevent leakage
         }), 201
         
     except sqlite3.IntegrityError:
@@ -513,9 +509,9 @@ def decrypt_file_endpoint(file_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # VULNERABILITY 11: Missing authorization
-        # Should verify: cursor.execute('SELECT * FROM files WHERE id = ? AND user_id = ?', (file_id, request.user_id))
-        cursor.execute('SELECT encrypted_data, filename FROM files WHERE id = ?', (file_id,))
+        # SECURE: Verify file ownership before allowing decryption (Prevent IDOR/HPE)
+        cursor.execute('SELECT encrypted_data, filename FROM files WHERE id = ? AND user_id = ?', 
+                       (file_id, request.user_id))
         result = cursor.fetchone()
         conn.close()
         
@@ -599,7 +595,5 @@ def download_file(file_id):
 
 if __name__ == '__main__':
     init_db()
-    # VULNERABILITY 12: Debug mode enabled
-    # IMPACT: Stack traces and sensitive information exposed to clients
-    # SOLUTION: Set debug=False in production
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    # SECURE: Debug mode must be disabled in production
+    app.run(debug=False, host='127.0.0.1', port=5000)
