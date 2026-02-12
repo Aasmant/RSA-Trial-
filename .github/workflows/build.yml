@@ -34,4 +34,4 @@ jobs:
         working-directory: ./RSA-JavaSpringboot
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Aasmant_RSA-Trial- -Dmaven.test.failure.ignore=true
+        run: mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Aasmant_RSA-Trial- -Dmaven.test.failure.ignore=true
