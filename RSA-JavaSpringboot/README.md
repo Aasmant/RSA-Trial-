@@ -47,35 +47,39 @@ RSA-JavaSpringboot/
 
 ---
 
-## How to Run
+## 🚀 Quick Start
 
-### Build the Project
-```bash
-mvn clean install
-```
+### Start the Server (Terminal 1)
 
-### Run the Application
 ```bash
 mvn spring-boot:run
 ```
 
 The server will start on **port 5000** (configured in `application.properties`).
 
-Server URL: `http://localhost:5000`
+✅ **Server URL:** `http://localhost:5000`
 
-### Use the Python Client (Optional)
+---
+
+### Run the Python Client (Terminal 2)
+
+Open a **new terminal** in the same directory:
+
 ```bash
 python3 client.py
 ```
 
+✅ **Client ready!** You can now interact with the encryption service.
+
 ---
 
-## Running Tests
+## 🧪 Running Tests (Optional)
 
 ### All Tests
 ```bash
 mvn test
 ```
+**Result**: 12 tests run (4 pass, 8 intentional failures for educational purposes)
 
 ### Security Tests Only
 ```bash
@@ -86,13 +90,13 @@ mvn test -Dtest="*security*"
 ```bash
 mvn test -Dtest=VulnerabilityDemonstrationTest
 ```
-**Note**: These tests intentionally fail to demonstrate vulnerability detection (8 expected failures).
+⚠️ **Note**: These tests intentionally fail to demonstrate vulnerability detection (8 expected failures).
 
 ### Secure Implementation Tests
 ```bash
 mvn test -Dtest=SecureImplementationTest
 ```
-**Note**: These tests validate correct security practices (4 expected passes).
+✅ **Note**: These tests validate correct security practices (4 expected passes).
 
 ---
 

@@ -28,41 +28,62 @@ The implementation features RSA asymmetric encryption, JWT-based authentication,
 
 ---
 
-## Installation and Running
+## 🚀 Quick Start Guide
 
-### Java Spring Boot Implementation
+### Step 1: Download the Repository
 
 ```bash
-# Clone repository
-cd /path/to/RSA-Trial-
+git clone https://github.com/Aasmant/RSA-Trial-.git
+cd RSA-Trial-/RSA-JavaSpringboot
+```
 
-# Navigate to Java implementation
-cd RSA-JavaSpringboot
+---
 
-# Build project
-mvn clean install
+### Step 2: Start the Server (Terminal 1)
 
-# Run application
+```bash
 mvn spring-boot:run
 ```
 
-**Server runs on**: `http://localhost:5000`
+✅ **Server running at:** `http://localhost:5000`
 
-### Running Tests
+---
+
+### Step 3: Run the Client (Terminal 2)
+
+Open a **new terminal** in the same directory:
 
 ```bash
-# Run all tests
+python3 client.py
+```
+
+✅ **Client ready!** You can now interact with the encryption service.
+
+---
+
+## 🧪 Running Tests (Optional)
+
+If you want to explore the security testing features:
+
+```bash
+# Run all tests (12 total: 4 pass, 8 intentional failures)
 mvn test
 
-# Run security tests only
-mvn test -Dtest="*security*"
-
-# Run vulnerability detection tests (8 intentional failures)
-mvn test -Dtest=VulnerabilityDemonstrationTest
-
-# Run secure implementation tests (4 expected passes)
+# Run only secure implementation tests (4 pass)
 mvn test -Dtest=SecureImplementationTest
+
+# Run only vulnerability detection tests (8 intentional failures)
+mvn test -Dtest=VulnerabilityDemonstrationTest
 ```
+
+---
+
+## 📋 Summary
+
+| Step | Terminal | Command | Purpose |
+|------|----------|---------|---------|
+| 1 | Terminal 1 | `mvn spring-boot:run` | Start backend server |
+| 2 | Terminal 2 | `python3 client.py` | Start client interface |
 
 ---
 
