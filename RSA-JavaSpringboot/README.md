@@ -1,94 +1,176 @@
 # RSA Encryption Service - Java Spring Boot Implementation
 
-This is a port of the Python RSA Encryption Service to Java Spring Boot, maintaining the same functionality and intentional security vulnerabilities for educational purposes.
+Java Spring Boot implementation of the RSA-based file encryption service demonstrating Secure Software Development Lifecycle (SSDLC) principles.
 
-## Project Structure
-- **Controller**: `ApiController.java` (REST Endpoints)
-- **Service**: `EncryptionService.java` (RSA/AES Logic), `AuditService.java`
-- **Model**: `User`, `FileEntity`, `AuditLog` (JPA Entities)
-- **Database**: SQLite (`rsa_service.db`) matching the Python schema.
-
-## Prerequisites
-- Java 17+
-- Maven
-
-## How to Run
-
-1. **Build the project**:
-   ```bash
-   mvn clean install
-   ```
-
-2. **Run the application**:
-   ```bash
-   mvn spring-boot:run
-   ```
-   The server will start on port `5000` (defined in `application.properties`).
-
-3. **Use the Client**:
-   The Python client is compatible with this Java backend.
-   ```bash
-   python3 client.py
-   ```
-
-## Intentional Vulnerabilities (Educational)
-This project replicates the specific security flaws found in the Python original:
-1. **Hardcoded Secret Key**: `JwtUtil.java` uses a hardcoded string.
-2. **Weak Password**: Registration allows short passwords.
-3. **Private Key Disclosure**: Registration returns the private key to the client.
-4. **No File Size Limit**: Uploads allow large files (configured in `application.properties`).
-5. **IDOR**: `decrypt` endpoint may not strictly validate file ownership in some logic paths.
-6. **Weak Crypto**: Uses MD5 for some hashing operations (as placeholder/weakness).
-
-**DO NOT USE IN PRODUCTION.**
+**For complete project information, see the [main README](../README.md).**
 
 ---
 
-## ⚠️ Security Testing Demonstration
+## What's Included
 
-### 🔴 Red Checks = Good Finding!
+This implementation contains:
 
-This project demonstrates **why security testing matters** by intentionally including vulnerabilities.
+- **REST API**: File encryption/decryption endpoints with JWT authentication
+- **Cryptographic Services**: RSA asymmetric and AES symmetric encryption  
+- **Database Layer**: SQLite with JPA/Hibernate for user and file management
+- **Audit Logging**: Security event tracking
+- **Security Tests**: Comprehensive test suites demonstrating vulnerability detection and secure implementations
 
-#### Test Suite Structure:
+---
 
-1. **Vulnerability Demonstration Tests** (❌ Expected to FAIL)
-   - Location: `src/test/java/com/example/rsa/security/VulnerabilityDemonstrationTest.java`
-   - These tests PROVE security testing can find real flaws
-   - Each failure shows a specific vulnerability (IDOR, hardcoded secrets, deterministic encryption)
+## Project Structure
 
-2. **Secure Implementation Tests** (✅ Expected to PASS)
-   - Location: `src/test/java/com/example/rsa/security/SecureImplementationTest.java`
-   - Demonstrates proper cryptographic practices
-   - Shows OAEP padding, strong keys, secure API design
+```
+RSA-JavaSpringboot/
+├── src/
+│   ├── main/java/com/example/rsa/
+│   │   ├── controller/          # REST API endpoints (ApiController)
+│   │   ├── service/             # Business logic (EncryptionService, AuditService)
+│   │   ├── model/               # JPA entities (User, FileEntity, AuditLog)
+│   │   ├── repository/          # Data access layer
+│   │   └── util/                # Utilities (JwtUtil)
+│   └── test/java/com/example/rsa/
+│       └── security/            # Security test suites
+│           ├── VulnerabilityDemonstrationTest.java
+│           └── SecureImplementationTest.java
+├── pom.xml                      # Maven dependencies and configuration
+├── client.py                    # Python CLI client for testing
+└── README.md                    # This file
+```
 
-### 📖 Professor's Requirement Met:
+---
 
-> "Even if your unit testing would find that your own RSA textbook implementation is weak (e.g. deterministic) that would be a great observation."
+## Prerequisites
 
-✅ **See `testTextbookRSAIsDeterministic()` for this exact demonstration!**
+- **Java**: 17 or higher
+- **Maven**: 3.9 or higher
 
-### 🎯 Question 6 Coverage:
+---
 
-- **a) Comprehensive security testing strategy** ✅ Multiple SSDLC phases covered
-- **b) Unit testing & static analysis role** ✅ 12 tests demonstrating vulnerability detection
-- **c) Compliance requirements** ✅ Documented in SECURITY_TESTING_STRATEGY.md
+## How to Run
 
-### 🚀 Running the Tests
+### Build the Project
+```bash
+mvn clean install
+```
 
-**Run all security tests:**
+### Run the Application
+```bash
+mvn spring-boot:run
+```
+
+The server will start on **port 5000** (configured in `application.properties`).
+
+Server URL: `http://localhost:5000`
+
+### Use the Python Client (Optional)
+```bash
+python3 client.py
+```
+
+---
+
+## Running Tests
+
+### All Tests
+```bash
+mvn test
+```
+
+### Security Tests Only
 ```bash
 mvn test -Dtest="*security*"
 ```
 
-**Run vulnerability detection tests (8 intentional failures):**
+### Vulnerability Detection Tests
 ```bash
 mvn test -Dtest=VulnerabilityDemonstrationTest
 ```
+**Note**: These tests intentionally fail to demonstrate vulnerability detection (8 expected failures).
 
-**Run secure implementation tests (4 passes):**
+### Secure Implementation Tests
 ```bash
 mvn test -Dtest=SecureImplementationTest
 ```
+**Note**: These tests validate correct security practices (4 expected passes).
 
-**Note:** Failing tests are intentional and educational. They demonstrate successful vulnerability detection, not code failures.
+---
+
+## Test Suites Overview
+
+### VulnerabilityDemonstrationTest.java
+8 tests that intentionally fail, each detecting a specific security vulnerability:
+- Cryptographic weaknesses (textbook RSA, weak key sizes)
+- Secret management issues (hardcoded JWT secret)
+- Authorization flaws (IDOR)
+- Information leakage (private keys, verbose errors)
+- Hash weaknesses (MD5 usage)
+- Missing security controls (no rate limiting)
+
+### SecureImplementationTest.java  
+4 tests that pass, validating secure implementations:
+- OAEP padding for probabilistic encryption
+- Strong 2048-bit RSA keys
+- Private keys not exposed in API responses
+- Complete secure encryption/decryption flow
+
+---
+
+## API Endpoints
+
+For complete API documentation, see the [main README](../README.md#api-documentation).
+
+Quick reference:
+- `POST /api/register` - User registration
+- `POST /api/login` - User authentication
+- `POST /api/upload` - Upload encrypted file
+- `GET /api/files` - List user's files
+- `GET /api/download/{fileId}` - Download file
+- `POST /api/decrypt/{fileId}` - Decrypt file
+- `GET /api/health` - Health check
+
+---
+
+## Educational Purpose
+
+⚠️ **This implementation contains intentional security vulnerabilities for educational purposes.**
+
+The vulnerabilities are:
+- Clearly documented in test files and documentation
+- Detected by automated test suites  
+- Include remediation guidance
+- Demonstrate effective security testing methodologies
+
+**DO NOT USE IN PRODUCTION**
+
+---
+
+## Documentation
+
+For comprehensive documentation, see:
+- **[Main README](../README.md)** - Complete project overview and all 8 SSDLC questions
+- **[QUESTION_6_THEORY_FOR_REPORT.md](../QUESTION_6_THEORY_FOR_REPORT.md)** - Security testing theory for report writing
+- **[SECURITY_TEST_RESULTS.md](../SECURITY_TEST_RESULTS.md)** - Detailed test results and findings
+- **[SECURITY_TESTING_STRATEGY.md](../SECURITY_TESTING_STRATEGY.md)** - Testing strategy and compliance
+
+---
+
+## Technology Stack
+
+- **Framework**: Spring Boot 3.x
+- **Language**: Java 17
+- **Database**: SQLite (embedded)
+- **ORM**: JPA/Hibernate
+- **Authentication**: JWT (JSON Web Tokens)
+- **Encryption**: Java Cipher API (RSA + AES)
+- **Testing**: JUnit 5 (Jupiter)
+- **Build**: Maven
+
+---
+
+## Support
+
+For questions or issues:
+1. Check the [main README](../README.md) for complete documentation
+2. Review test files for implementation examples
+3. Consult security documentation files for detailed analysis
