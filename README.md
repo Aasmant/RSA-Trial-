@@ -1,107 +1,13 @@
 # RSA-Based File Encryption Service - Secure SDLC Case Study
 
-[![Security Tests](https://github.com/Aasmant/RSA-Trial-/actions/workflows/security-tests.yml/badge.svg)](https://github.com/Aasmant/RSA-Trial-/actions/workflows/security-tests.yml)
 
 ## Overview
 
-This repository demonstrates a comprehensive implementation of Secure Software Development Lifecycle (SSDLC) principles through an RSA-based file encryption service. The project serves as an educational case study showcasing security requirements engineering, threat modeling, secure architecture design, and comprehensive security testing throughout all phases of the development lifecycle.
+This repository demonstrates a comprehensive implementation of Secure Software Development Lifecycle (SSDLC) principles through an RSA-based file encryption service. The project serves as showcasing security requirements engineering, threat modeling, secure architecture design, and comprehensive security testing throughout all phases of the development lifecycle.
 
 The implementation features RSA asymmetric encryption, JWT-based authentication, RESTful API design, and includes intentional security vulnerabilities with corresponding detection tests to demonstrate effective security testing methodologies.
 
 ---
-
-## Project Scope
-
-This project demonstrates comprehensive coverage of 8 key questions in Secure Software Development Lifecycle (SSDLC):
-
-### Question 1: Security Requirements Engineering
-Security requirements are identified and documented from project inception, including confidentiality (encryption at rest and in transit), authentication (JWT-based), authorization (user-based file access), and compliance considerations (NIST, OWASP standards).
-
-**Documentation**: Security requirements integrated throughout codebase and testing strategy.
-
-### Question 2: Threat Modeling and Risk Assessment
-Comprehensive threat analysis identifying assets (private keys, user data, JWT tokens), threat actors (unauthorized users, attackers), and attack vectors (IDOR, key exposure, weak cryptography). Risk assessment categorizes vulnerabilities by severity (Critical, High, Medium, Low).
-
-**Documentation**: Threat model reflected in test categories and security controls.
-
-### Question 3: Secure Software Architecture & Design
-System architecture implements defense-in-depth principles with layered security controls: authentication layer (JWT), encryption layer (RSA + AES), data access layer (authorization checks), and audit layer (logging). Design patterns follow OWASP secure coding guidelines.
-
-**Documentation**: Architecture described in this README; secure design patterns demonstrated in SecureImplementationTest.
-
-### Question 4: Authentication & Authorization
-JWT-based authentication system with secure token generation and validation. Authorization implements resource-level access controls ensuring users can only access their own encrypted files. Tests validate both secure implementations and identify IDOR vulnerabilities.
-
-**Documentation**: API endpoints section; authentication tests in security test suites.
-
-### Question 5: Secure Implementation and Code Assurance
-Implementation follows secure coding practices with proper use of cryptographic libraries (Java Cipher API), secure key management patterns, and input validation. Code demonstrates both secure and insecure patterns for educational comparison.
-
-**Documentation**: Source code in `RSA-JavaSpringboot/src/main/java/`; comparative tests in test suites.
-
-### Question 6: Security Testing, Validation, and Compliance
-Comprehensive security testing strategy with 12 automated tests covering vulnerability detection and secure implementation verification. Testing addresses NIST, OWASP, PCI-DSS, and HIPAA compliance requirements. CI/CD pipeline provides continuous security validation.
-
-**Documentation**: 
-- **[QUESTION_6_THEORY_FOR_REPORT.md](QUESTION_6_THEORY_FOR_REPORT.md)** - Complete theoretical foundation for report writing
-- **[SECURITY_TEST_RESULTS.md](SECURITY_TEST_RESULTS.md)** - Detailed test results and technical findings  
-- **[SECURITY_TESTING_STRATEGY.md](SECURITY_TESTING_STRATEGY.md)** - Testing strategy and SSDLC integration
-- Test implementations in `RSA-JavaSpringboot/src/test/java/com/example/rsa/security/`
-
-### Question 7: Secure Deployment, Operations, and Incident Response
-Deployment considerations include secure configuration management (environment variables for secrets), monitoring and logging (audit trails for security events), and incident response planning (vulnerability remediation roadmap).
-
-**Documentation**: CI/CD workflow in `.github/workflows/security-tests.yml`; remediation roadmap in SECURITY_TEST_RESULTS.md.
-
-### Question 8: Maintenance, Evolution, and Cryptographic Agility
-Project demonstrates cryptographic agility through modular design allowing algorithm upgrades. Remediation roadmap shows evolution path from insecure implementations (textbook RSA, MD5) to secure alternatives (OAEP padding, bcrypt). Maintenance considerations include security regression testing.
-
-**Documentation**: Migration guidance in SECURITY_TEST_RESULTS.md; secure alternatives demonstrated in tests.
-
----
-
-## Architecture
-
-### System Components
-
-```
-┌─────────────────┐
-│   Client App    │
-│  (Python CLI)   │
-└────────┬────────┘
-         │ HTTPS/JWT
-         ▼
-┌─────────────────────────────────┐
-│    REST API Layer               │
-│  (Spring Boot Controller)       │
-│  - Authentication (JWT)         │
-│  - Authorization checks         │
-│  - Input validation             │
-└────────┬────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────┐
-│    Business Logic Layer         │
-│  - EncryptionService (RSA/AES)  │
-│  - AuditService (logging)       │
-└────────┬────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────┐
-│    Data Access Layer            │
-│  - User Repository              │
-│  - File Repository              │
-│  - Audit Repository             │
-└────────┬────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────┐
-│    Database (SQLite)            │
-│  - Users (credentials, keys)    │
-│  - Files (encrypted data)       │
-│  - Audit logs                   │
-└─────────────────────────────────┘
-```
 
 ### Technology Stack
 - **Backend Framework**: Java 17 + Spring Boot 3.x
